@@ -14,14 +14,17 @@ class StaticFramePublisher : public rclcpp::Node
 {
 public:
   explicit StaticFramePublisher()
-  : Node("static_turtle_tf2_broadcaster")
+  : Node("framePublisher")
   {
-
     this->declare_parameter<float>("angvel", 0.5);
-    this->get_parameter("angvel", angvel_);
-
     this->declare_parameter<float>("linvel", 0.5);
+
+    this->get_parameter("angvel", angvel_);
     this->get_parameter("linvel", linvel_);
+
+    RCLCPP_INFO(this->get_logger(), "linear velocity: %f", linvel_);
+
+
     tf_static_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
     tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(this);
 
@@ -73,9 +76,6 @@ private:
   {
     geometry_msgs::msg::TransformStamped t;
 
-    // Read message content and assign it to
-    // corresponding tf variables
-  
     t.header.stamp = this->get_clock()->now();
     _dt.nanosec = t.header.stamp.nanosec - last_time.nanosec;
     last_time.nanosec = t.header.stamp.nanosec;
@@ -95,23 +95,16 @@ private:
       changelinVel = true;
     }
 
-    RCLCPP_INFO(this->get_logger(), "z position: [%s]", std::to_string(z_pos).c_str());
-
-
-    //RCLCPP_INFO(this->get_logger(), "reference orientation: [%s]", std::to_string(angle).c_str());
+    //RCLCPP_INFO(this->get_logger(), "Current position along z: [%s]", std::to_string(z_pos).c_str());
+    //RCLCPP_INFO(this->get_logger(), "Current orientation about z: [%s]", std::to_string(angle).c_str());
 
     t.header.frame_id = "map";
     t.child_frame_id = "rotating_frame";
 
-    // Turtle only exists in 2D, thus we get x and y translation
-    // coordinates from the message and set the z coordinate to 0
     t.transform.translation.x = 1.0;
     t.transform.translation.y = 0.0;
     t.transform.translation.z = z_pos;
 
-    // For the same reason, turtle can only rotate around one axis
-    // and this why we set rotation in x and y to 0 and obtain
-    // rotation in z axis from the message
     tf2::Quaternion q;
     q.setRPY(0, 0, angle);
     t.transform.rotation.x = q.x();
@@ -119,8 +112,6 @@ private:
     t.transform.rotation.z = q.z();
     t.transform.rotation.w = q.w();
      
-
-    // Send the transformation
     tf_broadcaster_->sendTransform(t);
   }
 
