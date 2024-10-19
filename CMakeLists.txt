@@ -22,10 +22,19 @@ ament_target_dependencies(
     tf2_ros
 )
 
+add_executable(frame_transf src/from_rotating_to_optical.cpp)
+ament_target_dependencies(
+  frame_transf
+    geometry_msgs
+    rclcpp
+    tf2
+    tf2_ros
+)
+
 
 
 install(TARGETS
-    pb_frames
+    pb_frames frame_transf
     DESTINATION lib/${PROJECT_NAME})
     
 install(
