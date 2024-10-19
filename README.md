@@ -12,3 +12,8 @@ You can select these velocity passing the parameters:
 ros2 launch interview_homework frames.launch.py ang_vel:=desiredAng_vel lin_vel:=desiredLinVel
 ```
 
+In another terminal, type:
+```
+ros2 run interview_homework frame_transf
+```
+to see the transformation between the camera_optical_frame and the rotating_frame.
