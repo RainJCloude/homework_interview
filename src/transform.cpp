@@ -21,7 +21,6 @@ public:
         tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
         tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
-
         timer_ = this->create_wall_timer(
         std::chrono::milliseconds(100), std::bind(&FrameListener::on_timer, this));
   }
@@ -45,8 +44,6 @@ public:
       RCLCPP_INFO(rclcpp::get_logger("translation: "), "%s", oss.str().c_str());
   }
 private:
-
-
 
     void on_timer()
     {     

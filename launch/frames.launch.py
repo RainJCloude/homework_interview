@@ -62,10 +62,17 @@ def generate_launch_description():
         arguments=["-d", LaunchConfiguration("rviz_config_file")],
     )
 
+    im_pub = Node(
+        package="interview_homework",
+        executable="im_pub",
+        name='im_pub', 
+    )
+
   
     nodes_to_start = [
         frames,
         rviz_node,
+        im_pub
     ]
     
     return LaunchDescription(declared_arguments + nodes_to_start) 

@@ -7,11 +7,18 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
+
 find_package(geometry_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
- 
+find_package(sensor_msgs REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(image_geometry REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 
 add_executable(pb_frames src/publish_frames.cpp)
 ament_target_dependencies(
@@ -22,23 +29,56 @@ ament_target_dependencies(
     tf2_ros
 )
 
-add_executable(frame_transf src/from_rotating_to_optical.cpp)
+add_executable(transform src/transform.cpp)
 ament_target_dependencies(
-  frame_transf
+    transform
     geometry_msgs
     rclcpp
     tf2
     tf2_ros
 )
 
+add_executable(drawer src/drawer.cpp)
+ament_target_dependencies(
+    drawer
+    geometry_msgs
+    rclcpp
+    tf2
+    tf2_ros
+    sensor_msgs
+    cv_bridge
+    OpenCV
+    image_geometry
+    image_transport
+)
 
+ament_python_install_package(${PROJECT_NAME})
+
+
+add_executable(im_pub src/im_pub.cpp)
+ament_target_dependencies(
+    im_pub
+    geometry_msgs
+    rclcpp
+    tf2
+    tf2_ros
+    sensor_msgs
+    cv_bridge
+    OpenCV
+    image_transport
+    ament_index_cpp
+)
 
 install(TARGETS
-    pb_frames frame_transf
+    pb_frames drawer transform im_pub
     DESTINATION lib/${PROJECT_NAME})
     
+install(PROGRAMS
+  scripts/pub_image.py
+  DESTINATION lib/${PROJECT_NAME}
+)
 install(
-  DIRECTORY config launch 
+  DIRECTORY config launch img
   DESTINATION share/${PROJECT_NAME}
 )
     
