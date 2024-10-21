@@ -9,8 +9,13 @@
 #include <image_geometry/pinhole_camera_model.h>
 #include <image_transport/image_transport.hpp>
 
+#include <message_filters/subscriber.h>
+#include <message_filters/time_synchronizer.h>
+
 
 #include <chrono>
+
+using namespace std::chrono_literals;
 
 class FrameDrawer_on_image : public rclcpp::Node {
 public:
@@ -19,18 +24,19 @@ public:
             it_(node_handle_)
     {
 
+        rclcpp::QoS qos(10);
+        auto rmw_qos_profile = qos.get_rmw_qos_profile();
+
         tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
         tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_); //connect tf2_listner to the /tf topic
+       
+       /*sub_ = it_.subscribeCamera("camera/Image", 10,
+            std::bind(&FrameDrawer_on_image::cameraSubscriber, this, std::placeholders::_1, std::placeholders::_2));*/
 
-        // Subscriber to the camera image published by the python node
-        /*image_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
-            "camera/image_input", 10,
-            std::bind(&FrameDrawer_on_image::imageSubscriber, this, std::placeholders::_1)
-        );*/
-        
-        sub_ = it_.subscribeCamera("camera/Image", 10,
-            std::bind(&FrameDrawer_on_image::cameraSubscriber, this, std::placeholders::_1, std::placeholders::_2));
-
+        subscriber_temp1_.subscribe(this, "/camera/Image", rmw_qos_profile);
+        subscriber_temp2_.subscribe(this, "/camera/camera_info", rmw_qos_profile);
+        temp_sync_ = std::make_shared<message_filters::TimeSynchronizer<sensor_msgs::msg::Image, sensor_msgs::msg::CameraInfo>>(subscriber_temp1_, subscriber_temp2_, 10);
+        temp_sync_->registerCallback(std::bind(&FrameDrawer_on_image::cameraSubscriber, this, std::placeholders::_1, std::placeholders::_2));
     }
 
     void cameraSubscriber(const sensor_msgs::msg::Image::ConstSharedPtr& raw_image,
@@ -51,8 +57,8 @@ public:
         // Wait for the transform
         RCLCPP_INFO(this->get_logger(), "Published camera info: %s", cam_info->header.frame_id.c_str());
          
-        tf_buffer_->canTransform("rotating_frame", cam_info->header.frame_id, acquisition_time, timeout);
-        t = tf_buffer_->lookupTransform("rotating_frame", cam_info->header.frame_id, acquisition_time);
+        tf_buffer_->canTransform(cam_info->header.frame_id, "rotating_frame", acquisition_time, timeout);
+        t = tf_buffer_->lookupTransform(cam_info->header.frame_id, "rotating_frame", acquisition_time);
 
         //t = tf_buffer_->lookupTransform("rotating_frame", "camera_optical_frame", tf2::TimePointZero);
         tf2::Vector3 pt(t.transform.translation.x, t.transform.translation.y, t.transform.translation.z);
@@ -87,6 +93,13 @@ private:
     rclcpp::TimerBase::SharedPtr timer_;
     image_transport::CameraSubscriber sub_; //be aware with image_transport::Subscriber
     image_transport::Subscriber sub_img_;
+
+    message_filters::Subscriber<sensor_msgs::msg::Image> subscriber_temp1_;
+    message_filters::Subscriber<sensor_msgs::msg::CameraInfo> subscriber_temp2_;
+
+
+    std::shared_ptr<message_filters::TimeSynchronizer<sensor_msgs::msg::Image, sensor_msgs::msg::CameraInfo>> temp_sync_;
+
 };
 
 int main(int argc, char **argv) {

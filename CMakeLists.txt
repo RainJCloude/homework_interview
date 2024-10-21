@@ -7,7 +7,7 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(ament_cmake_python REQUIRED)
+#find_package(ament_cmake_python REQUIRED)
 
 find_package(geometry_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -19,6 +19,7 @@ find_package(cv_bridge REQUIRED)
 find_package(image_geometry REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(ament_index_cpp REQUIRED)
+find_package(message_filters REQUIRED)
 
 add_executable(pb_frames src/publish_frames.cpp)
 ament_target_dependencies(
@@ -50,9 +51,10 @@ ament_target_dependencies(
     OpenCV
     image_geometry
     image_transport
+    message_filters
 )
 
-ament_python_install_package(${PROJECT_NAME})
+#ament_python_install_package(${PROJECT_NAME})
 
 
 add_executable(im_pub src/im_pub.cpp)
@@ -60,8 +62,6 @@ ament_target_dependencies(
     im_pub
     geometry_msgs
     rclcpp
-    tf2
-    tf2_ros
     sensor_msgs
     cv_bridge
     OpenCV
@@ -73,10 +73,6 @@ install(TARGETS
     pb_frames drawer transform im_pub
     DESTINATION lib/${PROJECT_NAME})
     
-install(PROGRAMS
-  scripts/pub_image.py
-  DESTINATION lib/${PROJECT_NAME}
-)
 install(
   DIRECTORY config launch img
   DESTINATION share/${PROJECT_NAME}
