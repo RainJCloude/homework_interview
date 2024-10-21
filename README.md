@@ -11,6 +11,7 @@ You can select these velocity passing the parameters:
 ```
 ros2 launch interview_homework frames.launch.py ang_vel:=desiredAng_vel lin_vel:=desiredLinVel
 ```
+The launch file will also launch the im_pub node which will publish an image on the /camera/Image topic along with camera_info informations
 
 In another terminal, type:
 ```
